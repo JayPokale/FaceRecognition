@@ -5,7 +5,7 @@ from simple_facerec import SimpleFacerec
 sfr = SimpleFacerec()
 sfr.load_encoding_images("images/")
 
-def highlightFace(net, frame, conf_threshold=0.7):
+def highlightFace(net, frame, conf_threshold=0.6):
     frameOpencvDnn=frame.copy()
     frameHeight=frameOpencvDnn.shape[0]
     frameWidth=frameOpencvDnn.shape[1]
@@ -48,6 +48,7 @@ genderNet=cv2.dnn.readNet(genderModel,genderProto)
 
 video=cv2.VideoCapture(0)
 padding=20
+
 while cv2.waitKey(1)<0 :
     hasFrame,frame=video.read()
     if not hasFrame:
@@ -59,9 +60,8 @@ while cv2.waitKey(1)<0 :
     for faceBox in faceBoxes:
         face=frame[max(0,faceBox[1]-padding):min(faceBox[3]+padding,frame.shape[0]-1),
                    max(0,faceBox[0]-padding):min(faceBox[2]+padding, frame.shape[1]-1)]
-        face_locations, face_names = sfr.detect_known_faces(face)
-        name = "Unknown"
-        if(len(face_names)): name = face_names[0]
+        name = sfr.detect_known_faces(face)
+        if(len(name)): name = name
 
         blob=cv2.dnn.blobFromImage(face, 1.0, (227,227), MODEL_MEAN_VALUES, swapRB=False)
         genderNet.setInput(blob)

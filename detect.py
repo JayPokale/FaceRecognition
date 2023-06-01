@@ -1,6 +1,12 @@
+from imutils import face_utils
+import dlib
 import cv2
 import argparse
 from simple_facerec import SimpleFacerec
+
+p = "shape_predictor_68_face_landmarks.dat"
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor(p)
 
 sfr = SimpleFacerec()
 sfr.load_encoding_images("images/")
@@ -53,7 +59,7 @@ while cv2.waitKey(1)<0 :
     hasFrame,frame=video.read()
     if not hasFrame:
         cv2.waitKey()
-        break
+        continue
     
     resultImg,faceBoxes=highlightFace(faceNet,frame)
 
@@ -72,6 +78,16 @@ while cv2.waitKey(1)<0 :
         agePreds=ageNet.forward()
         age=ageList[agePreds[0].argmax()]
 
-        cv2.putText(resultImg, f'{name}', (faceBox[0], faceBox[1]-30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,255), 1, cv2.LINE_AA)
-        cv2.putText(resultImg, f'{gender}, {age}', (faceBox[0], faceBox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,255), 1, cv2.LINE_AA)
+        cv2.putText(resultImg, f'{name}', (faceBox[0], faceBox[1]-30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1, cv2.LINE_AA)
+        cv2.putText(resultImg, f'{gender}, {age}', (faceBox[0], faceBox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1, cv2.LINE_AA)
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    rects = detector(frame, 0)
+    for (i, rect) in enumerate(rects):
+        shape = predictor(gray, rect)
+        shape = face_utils.shape_to_np(shape)
+        for (x,y) in shape:
+            cv2.circle(resultImg, (x,y), 2, (0,255,0), -1)
+    
+
     cv2.imshow("Detecting age and gender", resultImg)
